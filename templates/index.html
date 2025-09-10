@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Syntax Checker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
+            font-family: 'Roboto', Arial, sans-serif;
+        }
+        .container {
+            max-width: 700px;
+            margin-top: 50px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            border-radius: 16px;
+        }
+        h2 {
+            font-weight: 700;
+            color: #2563eb;
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+            border: none;
+        }
+        .btn-secondary {
+            background: linear-gradient(90deg, #64748b 0%, #a5b4fc 100%);
+            border: none;
+        }
+        .result {
+            margin-top: 20px;
+        }
+        .error-highlight {
+            background: #ffe6e6;
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: none;
+        }
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border: none;
+        }
+        .how-to {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .upload-section {
+            margin-top: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container shadow p-4 bg-white rounded">
+        <h2 class="mb-4 text-center">🐍 Python Syntax Checker</h2>
+        <form id="syntaxForm">
+            <div class="mb-3">
+                <label for="code" class="form-label">Paste your Python code here:</label>
+                <textarea class="form-control" id="code" name="code" rows="10" required placeholder="e.g.\ndef greet():\n    print('Hello')"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Check Syntax</button>
+        </form>
+        <div class="upload-section">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="file" class="form-label">Or upload a Python (.py) file:</label>
+                    <input type="file" class="form-control" id="file" name="file" accept=".py">
+                </div>
+                <button type="submit" class="btn btn-secondary w-100">Upload & Check</button>
+            </form>
+        </div>
+        <div class="result" id="result"></div>
+        <div class="how-to mt-4">
+            <h5 class="mb-2">How to use:</h5>
+            <ul class="mb-0">
+                <li>Paste your Python code or upload a <code>.py</code> file.</li>
+                <li>Click <b>Check Syntax</b> or <b>Upload & Check</b>.</li>
+                <li>Syntax errors (if any) will be shown with line and column details.</li>
+                <li>Enjoy instant feedback and a clean, modern interface!</li>
+            </ul>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $('#syntaxForm').on('submit', function(e) {
+            e.preventDefault();
+            $('#result').html('<div class="text-info">Checking...</div>');
+            $.post('/check_syntax', $(this).serialize(), function(data) {
+                if (data.status === 'success') {
+                    $('#result').html('<div class="alert alert-success">' + data.message + '</div>');
+                } else {
+                        let errorMsg = '<div class="alert alert-danger">' + data.message + '</div>';
+                        if (data.details && data.details.text) {
+                            errorMsg += '<pre class="error-highlight">' + data.details.text + '</pre>';
+                        }
+                        $('#result').html(errorMsg);
+                }
+            });
+        });
+            $('#uploadForm').on('submit', function(e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+                $('#result').html('<div class="text-info">Checking...</div>');
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(data) {
+                        if (data.status === 'success') {
+                            $('#result').html('<div class="alert alert-success">' + data.message + '</div>');
+                        } else {
+                            let errorMsg = '<div class="alert alert-danger">' + data.message + '</div>';
+                            if (data.details && data.details.text) {
+                                errorMsg += '<pre class="error-highlight">' + data.details.text + '</pre>';
+                            }
+                            $('#result').html(errorMsg);
+                        }
+                    }
+                });
+            });
+    </script>
+</body>
+</html>
